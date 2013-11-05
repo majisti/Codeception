@@ -36,9 +36,12 @@ class Test extends \Codeception\TestCase
         if ($this->bootstrap) require $this->bootstrap;
         $this->scenario = new \Codeception\Scenario($this);
         $guy = $this->guyClass;
-        if ($guy) { 
-            $property = lcfirst($guy);
-            $this->$property = new $guy($this->scenario);
+        if ($guy) {
+            $guyInstance = new $guy($this->scenario);
+            $class = explode('\\', get_class($guyInstance));
+            $property = lcfirst(end($class));
+
+            $this->$property = $guyInstance;
         }
         $this->scenario->run();
         $this->fire('test.before', new \Codeception\Event\Test($this));
