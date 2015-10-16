@@ -188,10 +188,9 @@ class Run extends Command
             $suites = $suite ? explode(',', $suite) : Configuration::suites();
             $this->executed = $this->runSuites($suites, $this->options['skip']);
 
-            if (!empty($config['include']) and !$suite) {
+            if (!empty($config['include']) ) {
                 $current_dir = Configuration::projectDir();
-                $suites += $config['include'];
-                $this->runIncludedSuites($config['include'], $current_dir);
+                $this->runIncludedSuites($config['include'], $current_dir, $suites);
             }
 
             if ($this->executed === 0) {
@@ -213,15 +212,17 @@ class Run extends Command
     /**
      * Runs included suites recursively
      *
-     * @param array $suites
+     * @param array $includedPaths
      * @param string $parent_dir
+     * @param $suitesToRun
+     * @throws \Codeception\Exception\ConfigurationException
      */
-    protected function runIncludedSuites($suites, $parent_dir)
+    protected function runIncludedSuites($includedPaths, $parent_dir, $suitesToRun)
     {
-        foreach ($suites as $relativePath) {
+        foreach ($includedPaths as $relativePath) {
             $current_dir = rtrim($parent_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $relativePath;
             $config = Configuration::config($current_dir);
-            $suites = Configuration::suites();
+            $suites = $suitesToRun ? $suitesToRun : Configuration::suites();
 
             $namespace = $this->currentNamespace();
             $this->output->writeln(
@@ -230,7 +231,7 @@ class Run extends Command
 
             $this->executed += $this->runSuites($suites, $this->options['skip']);
             if (!empty($config['include'])) {
-                $this->runIncludedSuites($config['include'], $current_dir);
+                $this->runIncludedSuites($config['include'], $current_dir, $suitesToRun);
             }
         }
     }
